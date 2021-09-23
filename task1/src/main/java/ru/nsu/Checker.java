@@ -4,67 +4,73 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
+import java.net.SocketTimeoutException;
 import java.util.UUID;
 
 public class Checker {
-    private static String group;
+    private String group;
 
-    private static final int port = 8000;
-    private static final String multicastMessage = "Hello world!";
-    private static final int length = 16;
-    private static final int bufSize = 2 * length;
-    private static final int maxIter = 10000;
+    private static final int PORT = 8000;
+    private static final String MULTICAST_MESSAGE = "Hello world!";
+    private static final int LENGTH = 16;
+    private static final int BUF_SIZE = 2 * LENGTH;
+    private static final int MAX_ITER = 10000;
+    private static final int TIMEOUT = 1000;
 
-    Checker(String group) {
-        Checker.group = group;
+    public Checker(String group) {
+        this.group = group;
     }
 
     public void run() throws IOException {
-        UUID uuidMulticastMessageSend = UUID.nameUUIDFromBytes(multicastMessage.getBytes());
+        UUID uuidMulticastMessageSend = UUID.nameUUIDFromBytes(MULTICAST_MESSAGE.getBytes());
         byte[] firstSend = UuidHelper.getBytesFromUUID(uuidMulticastMessageSend);
         UUID uuidProgramSend = UUID.randomUUID();
         byte[] secondSend = UuidHelper.getBytesFromUUID(uuidProgramSend);
 
-        byte[] bufSender = new byte[bufSize];
+        byte[] bufSender = new byte[BUF_SIZE];
         System.arraycopy(firstSend, 0, bufSender, 0, firstSend.length);
         System.arraycopy(secondSend, 0, bufSender, firstSend.length, secondSend.length);
 
-        MulticastSocket multicastSocket = new MulticastSocket(port);
+        MulticastSocket multicastSocket = new MulticastSocket(PORT);
+        multicastSocket.setSoTimeout(TIMEOUT);
         multicastSocket.joinGroup(InetAddress.getByName(group));
 
         DatagramPacket datagramPacketSend = new DatagramPacket(
                 bufSender,
                 bufSender.length,
                 InetAddress.getByName(group),
-                port
+                PORT
         );
 
-        byte[] bufReceiver = new byte[bufSize];
+        byte[] bufReceiver = new byte[BUF_SIZE];
         DatagramPacket datagramPacketReceive = new DatagramPacket(
                 bufReceiver,
                 bufReceiver.length
         );
 
-        for (int iter = 0; iter < maxIter; iter++) {
+        int numberOfLiveCopies = 0;
+
+        for (int iter = 0; iter < MAX_ITER; iter++) {
             multicastSocket.send(datagramPacketSend);
             multicastSocket.receive(datagramPacketReceive);
-
             bufReceiver = datagramPacketReceive.getData();
-            byte[] firstReceive = new byte[length];
-            byte[] secondReceive = new byte[length];
+            byte[] firstReceive = new byte[LENGTH];
+            byte[] secondReceive = new byte[LENGTH];
             System.arraycopy(bufReceiver, 0, firstReceive, 0, firstReceive.length);
             System.arraycopy(bufReceiver, firstReceive.length, secondReceive, 0, secondReceive.length);
 
             UUID uuidMulticastMessageReceive = UuidHelper.getUUIDFromBytes(firstReceive);
             UUID uuidProgramReceive = UuidHelper.getUUIDFromBytes(secondReceive);
-
+            
             if (uuidMulticastMessageSend.equals(uuidMulticastMessageReceive) && !uuidProgramSend.equals(uuidProgramReceive)) {
                 System.out.println("------Copy found------");
+                numberOfLiveCopies++;
             } else {
                 System.out.println("Copy not found");
             }
         }
         multicastSocket.leaveGroup(InetAddress.getByName(group));
         multicastSocket.close();
+        System.out.print("Number of live copies = " + numberOfLiveCopies);
     }
 }
