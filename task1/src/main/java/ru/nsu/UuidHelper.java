@@ -4,10 +4,10 @@ import java.nio.ByteBuffer;
 import java.util.UUID;
 
 public class UuidHelper {
-    private static final int length = 16;
+    private static final int LENGTH = 16;
 
     public static byte[] getBytesFromUUID(UUID uuid) {
-        ByteBuffer bb = ByteBuffer.wrap(new byte[length]);
+        ByteBuffer bb = ByteBuffer.wrap(new byte[LENGTH]);
         bb.putLong(uuid.getMostSignificantBits());
         bb.putLong(uuid.getLeastSignificantBits());
 
