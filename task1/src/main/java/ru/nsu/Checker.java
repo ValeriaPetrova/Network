@@ -48,8 +48,6 @@ public class Checker {
                 bufReceiver.length
         );
 
-        int numberOfLiveCopies = 0;
-
         for (int iter = 0; iter < MAX_ITER; iter++) {
             multicastSocket.send(datagramPacketSend);
             multicastSocket.receive(datagramPacketReceive);
@@ -64,13 +62,11 @@ public class Checker {
             
             if (uuidMulticastMessageSend.equals(uuidMulticastMessageReceive) && !uuidProgramSend.equals(uuidProgramReceive)) {
                 System.out.println("------Copy found------");
-                numberOfLiveCopies++;
             } else {
                 System.out.println("Copy not found");
             }
         }
         multicastSocket.leaveGroup(InetAddress.getByName(group));
         multicastSocket.close();
-        System.out.print("Number of live copies = " + numberOfLiveCopies);
     }
 }
