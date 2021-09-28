@@ -66,6 +66,8 @@ local.properties
 ##############################
 nbproject/private/
 build/
+build/classes/*
+build/libs/
 nbbuild/
 dist/
 nbdist/
