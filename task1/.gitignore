@@ -82,3 +82,15 @@ nb-configuration.xml
 ## OS X
 ##############################
 .DS_Store
+
+
+# Log file
+*.log
+
+# BlueJ files
+*.ctxt
+
+# Package Files #
+*.zip
+*.tar.gz
+*.rar
