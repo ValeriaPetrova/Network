@@ -1,9 +1,0 @@
--classpath 'D:\\network\\task1\\build\\classes\\java\\main;D:\\network\\task1\\build\\resources\\main'
--d 'D:\\network\\task1\\build\\docs\\javadoc'
--doctitle 'task1 1.0-SNAPSHOT API'
--notimestamp 
--quiet 
--windowtitle 'task1 1.0-SNAPSHOT API'
-'D:\\network\\task1\\src\\main\\java\\ru\\nsu\\Checker.java'
-'D:\\network\\task1\\src\\main\\java\\ru\\nsu\\Main.java'
-'D:\\network\\task1\\src\\main\\java\\ru\\nsu\\UuidHelper.java'
