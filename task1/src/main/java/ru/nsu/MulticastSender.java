@@ -18,12 +18,12 @@ public class MulticastSender extends Thread{
     public DatagramPacket datagramPacketSend;
     public byte[] sendBuf;
 
-    public Checker checker;
+//    public Checker checker;
     public static  final UUID uuidMulticastMessageSend = UUID.randomUUID();
 
-    public MulticastSender(String group, Checker checker) throws IOException {
+    public MulticastSender(String group) throws IOException {
         this.group = group;
-        this. checker = checker;
+//        this. checker = checker;
         multicastSocket = new MulticastSocket(PORT);
 
         sendBuf = UuidHelper.getBytesFromUUID(uuidMulticastMessageSend);

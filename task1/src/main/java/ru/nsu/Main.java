@@ -10,7 +10,7 @@ public class Main {
             System.exit(1);
         }
         Checker checker = new Checker();
-        MulticastSender multicastSender = new MulticastSender(args[0], checker);
+        MulticastSender multicastSender = new MulticastSender(args[0]);
         multicastSender.start();
         MulticastReceiver multicastReceiver = new MulticastReceiver(args[0], checker);
         multicastReceiver.start();
