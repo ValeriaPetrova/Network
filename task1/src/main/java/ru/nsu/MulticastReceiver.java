@@ -11,7 +11,7 @@ public class MulticastReceiver extends Thread{
 
     private static final int PORT = 8000;
     private static final int LENGTH = 16;
-    private static final int MAX_ITER = 100;
+    private static final int MAX_ITER = 10000;
     private static final int TIMEOUT = 100;
 
     public MulticastSocket multicastSocket;
@@ -29,7 +29,7 @@ public class MulticastReceiver extends Thread{
 
     @Override
     public void run() {
-        for (int iter = 0; iter < MAX_ITER; iter++) {
+        while (true) {
             byte[] receiveBuf = new byte[LENGTH];
             DatagramPacket datagramPacketReceive = new DatagramPacket(
                     receiveBuf,
@@ -45,6 +45,6 @@ public class MulticastReceiver extends Thread{
             checker.addElemToMap(uuidMulticastMessageReceive, System.currentTimeMillis());
             checker.checkPackets(MulticastSender.uuidMulticastMessageSend, uuidMulticastMessageReceive);
         }
-        System.out.println("Number of clones found: " + (checker.copies.size() - 1));
+
     }
 }

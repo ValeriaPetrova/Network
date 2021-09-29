@@ -11,7 +11,7 @@ public class MulticastSender extends Thread{
 
     private static final int PORT = 8000;
     private static final int LENGTH = 16;
-    private static final int MAX_ITER = 100;
+    private static final int MAX_ITER = 10000;
     private static final int TIMEOUT = 100;
 
     public MulticastSocket multicastSocket;
