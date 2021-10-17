@@ -1,0 +1,25 @@
+<configuration>
+<appender name="SERVER" class="ch.qos.logback.core.FileAppender">
+    <file>log/server.log</file>
+    <append>true</append>
+    <encoder>
+        <pattern>%d{HH:mm:ss,SSS} %-5p [%c] - %m%n</pattern>
+    </encoder>
+</appender>
+
+<appender name="CLIENT" class="ch.qos.logback.core.FileAppender">
+    <file>log/client.log</file>
+    <append>false</append>
+    <encoder>
+        <pattern>%d{HH:mm:ss,SSS} %-5p [%c] - %m%n</pattern>
+    </encoder>
+</appender>
+
+<logger name="SERVER" level="info">
+    <appender-ref ref="SERVER" />
+</logger>
+
+<logger name="CLIENT" level="info">
+    <appender-ref ref="CLIENT" />
+</logger>
+</configuration>
