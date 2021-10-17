@@ -73,6 +73,12 @@ dist/
 nbdist/
 nbactions.xml
 nb-configuration.xml
+.gradle
+.idea
+build
+gradle*
+res
+lib
 
 ##############################
 ## Visual Studio Code
