@@ -63,10 +63,10 @@ public class DownloadFile implements Runnable {
         }
     }
 
-    private void speedCalculation (long length, long read, long readJustNow, long startTime, long iterTime) {
+    private void speedCalculation (long read, long readJustNow, long startTime, long iterTime) {
         long currentTime = System.currentTimeMillis();
         double speed = (double) read / (currentTime - startTime) * 1000;
-        double instantSpeed = (double) readJustNow / (currentTime - iterTime) *1000;
+        double instantSpeed = (double) readJustNow / (currentTime - iterTime) * 1000;
         String speedOutput = String.format("%-15s", socket.getInetAddress()) +
                 String.format("%8.2f  B/s", speed) + String.format("%8.2f  B/s ", instantSpeed) +
                 String.format("%s", file.getName());
@@ -79,7 +79,7 @@ public class DownloadFile implements Runnable {
         long startTime = System.currentTimeMillis();
         long prevSessionTime = System.currentTimeMillis() - 1000;
         while (read < length) {
-            speedCalculation(length, read, readThisSession, startTime, prevSessionTime);
+            speedCalculation(read, readThisSession, startTime, prevSessionTime);
             prevSessionTime = System.currentTimeMillis();
             readThisSession = 0;
 
@@ -99,7 +99,7 @@ public class DownloadFile implements Runnable {
                 currentFinishTime = System.currentTimeMillis();
             } while ((currentFinishTime - currentStartTime < TIMEOUT) && (read < length));
         }
-        speedCalculation(length, length, 0, 0, 0);
+        speedCalculation(length, 0, 0, 0);
     }
 
     public void sendLastMessage(String text) throws IOException {
