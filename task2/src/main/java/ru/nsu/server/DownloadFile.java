@@ -117,8 +117,7 @@ public class DownloadFile implements Runnable {
         receiveFileName();
         file = createFile();
 
-        try {
-            FileOutputStream fileOutputStream = new FileOutputStream(file);
+        try (FileOutputStream fileOutputStream = new FileOutputStream(file)){
             long size = receiveFileSize();
             receiveData(size, fileOutputStream);
         } catch (IOException e) {

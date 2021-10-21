@@ -13,7 +13,7 @@ public class Main {
 
     public static void main(String[] args) throws IOException {
         if (args.length < CORRECT_COUNT_OF_ARGUMENTS) {
-            logger.error("Error: empty input. You should enter file path, ip address and server port number");
+            logger.error("Error: incorrect input. You should enter file path, ip address and server port number");
             System.exit(1);
         }
 

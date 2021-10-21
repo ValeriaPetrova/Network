@@ -17,11 +17,11 @@ public class Client {
     private InetAddress serverIP;
     private int serverPort;
 
-    private static Socket socket;
-    private static File file;
-    private static FileInputStream fileInputStream;
-    private static DataInputStream inputStream;
-    private static DataOutputStream outputStream;
+    private Socket socket;
+    private File file;
+    private FileInputStream fileInputStream;
+    private DataInputStream inputStream;
+    private DataOutputStream outputStream;
 
     public Client(String filePath, InetAddress serverIP, int serverPort) throws IOException {
         this.filePath = filePath;
