@@ -4,6 +4,8 @@ import java.io.*;
 import java.net.Socket;
 import java.net.SocketException;
 import java.nio.charset.StandardCharsets;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import lombok.SneakyThrows;
 import org.slf4j.Logger;
@@ -17,11 +19,18 @@ public class DownloadFile implements Runnable {
     private DataInputStream inputStream;
     private DataOutputStream outputStream;
     private File file;
+    private long readOneIter = 0;
+    private long readAll = 0;
+    private long time = 0;
 
     private final static int NOT_FOUND = -1;
     private final static String DIRECTORY = "uploads";
     private final static int BUF_SIZE = 1024;
     private final static long TIMEOUT = 3000;
+    private final static int CORE_POOL_SIZE = 1;
+    private final static int INITIAL_DELAY = 2;
+    private final static int PERIOD = 3;
+    private final static int KILOBYTES = 1024;
 
     public DownloadFile(Socket socket) {
         this.socket = socket;
@@ -63,43 +72,53 @@ public class DownloadFile implements Runnable {
         }
     }
 
-    private void speedCalculation (long read, long readJustNow, long startTime, long iterTime) {
-        long currentTime = System.currentTimeMillis();
-        double speed = (double) read / (currentTime - startTime) * 1000;
-        double instantSpeed = (double) readJustNow / (currentTime - iterTime) * 1000;
-        String speedOutput = String.format("%-15s", socket.getInetAddress()) +
-                String.format("%8.2f  B/s", speed) + String.format("%8.2f  B/s ", instantSpeed) +
+    private String beautifulSpeed(double speed) {
+        if (speed <= KILOBYTES) {
+            return String.format("%8.2f  B/s ", speed);
+        } else if (speed <= KILOBYTES * KILOBYTES) {
+            return String.format("%8.2f KB/s ", speed / KILOBYTES);
+        } else if (speed <= KILOBYTES * KILOBYTES * KILOBYTES) {
+            return String.format("%8.2f MB/s ", speed / KILOBYTES / KILOBYTES);
+        } else {
+            return String.format("%8.2f GB/s ", speed / KILOBYTES / KILOBYTES / KILOBYTES);
+        }
+    }
+
+    private void speedCalculation () {
+        if (0 == readOneIter) {
+            return;
+        }
+        double speed = (double) readOneIter / PERIOD;
+        readAll += readOneIter;
+        time += PERIOD;
+        double instantSpeed = (double) readAll / time;
+        String speedOutput = String.format("%-15s ", socket.getInetAddress()) +
+                beautifulSpeed(speed) +
+                beautifulSpeed(instantSpeed) +
                 String.format("%s", file.getName());
         logger.info(speedOutput);
+        readOneIter = 0;
     }
 
     public void receiveData(long length, FileOutputStream fileOutputStream) throws IOException {
+        var scheduledThreadPool = Executors.newScheduledThreadPool(CORE_POOL_SIZE);
+
         byte[] buf = new byte[BUF_SIZE];
         long read = 0, readThisSession = 0;
-        long startTime = System.currentTimeMillis();
-        long prevSessionTime = System.currentTimeMillis() - 1000;
-        while (read < length) {
-            speedCalculation(read, readThisSession, startTime, prevSessionTime);
-            prevSessionTime = System.currentTimeMillis();
-            readThisSession = 0;
 
-            long currentStartTime = System.currentTimeMillis();
-            long currentFinishTime = currentStartTime;
-            do{
-                socket.setSoTimeout((int) (TIMEOUT - (currentFinishTime - currentStartTime)));
-                long readNow;
-                if (length - read >= BUF_SIZE) {
-                    readNow = inputStream.read(buf);
-                } else {
-                    readNow = inputStream.read(buf, 0, (int)(length - read));
-                }
-                fileOutputStream.write(buf, 0, (int)readNow);
-                readThisSession += readNow;
-                read += readNow;
-                currentFinishTime = System.currentTimeMillis();
-            } while ((currentFinishTime - currentStartTime < TIMEOUT) && (read < length));
+        scheduledThreadPool.scheduleAtFixedRate(this::speedCalculation, INITIAL_DELAY, PERIOD, TimeUnit.SECONDS);
+        while (read < length) {
+            if (length - read >= BUF_SIZE) {
+                readThisSession = inputStream.read(buf);
+            } else {
+                readThisSession = inputStream.read(buf, 0, (int)(length - read));
+            }
+
+            fileOutputStream.write(buf, 0, (int)readThisSession);
+
+            read += readThisSession;
+            readOneIter += readThisSession;
         }
-        speedCalculation(length, 0, 0, 0);
     }
 
     public void sendLastMessage(String text) throws IOException {

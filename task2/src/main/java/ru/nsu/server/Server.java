@@ -15,7 +15,6 @@ public class Server {
     private static int PORT;
     private final ExecutorService threadPool = Executors.newCachedThreadPool();
 
-
     public Server(int port) throws IOException {
         PORT = port;
         ServerSocket serverSocket = new ServerSocket(PORT);
