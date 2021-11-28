@@ -6,6 +6,7 @@ import lombok.SneakyThrows;
 import ru.nsu.task3.Model.*;
 
 import java.util.Iterator;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 public class Parser {
@@ -13,7 +14,7 @@ public class Parser {
     public static CopyOnWriteArrayList<Place> parsePlace(String request) {
         CopyOnWriteArrayList<Place> places = new CopyOnWriteArrayList<>();
         ObjectMapper objectMapper = new ObjectMapper();
-        JsonNode jsonNode = objectMapper.readTree(request);
+        JsonNode jsonNode = objectMapper.readTree(String.valueOf(request));
         Iterator<JsonNode> iterator = jsonNode.get("hits").elements();
         if(!iterator.hasNext()) {
             throw new ModelException("Can't find places");

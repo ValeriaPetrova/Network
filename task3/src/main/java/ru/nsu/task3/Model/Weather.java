@@ -1,20 +1,14 @@
 package ru.nsu.task3.Model;
 
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
+@Getter
+@RequiredArgsConstructor
 public class Weather {
-    @Getter
-    public String temp;
-    @Getter
-    public String tempFeelsLike;
-    @Getter
-    public String speedWind;
-
-    public Weather(String temp, String  tempFeelsLike, String speedWind) {
-        this.temp = temp;
-        this.tempFeelsLike = tempFeelsLike;
-        this.speedWind = speedWind;
-    }
+    private final String temp;
+    private final String tempFeelsLike;
+    private final String speedWind;
 
     @Override
     public String toString() {

@@ -1,32 +1,18 @@
 package ru.nsu.task3.Model;
 
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
+@Getter
+@RequiredArgsConstructor
 public class Place {
-    @Getter
-    public final String name;
-    @Getter
-    public final String country;
-    @Getter
-    public final String city;
-    @Getter
-    public final String street;
-    @Getter
-    public final String num;
-    @Getter
-    public final String lat;
-    @Getter
-    public final String lng;
-
-    public Place(String name, String country, String city, String street, String num, String lat, String lng) {
-        this.name = name;
-        this.country = country;
-        this.city = city;
-        this.street = street;
-        this.num = num;
-        this.lat = lat;
-        this.lng = lng;
-    }
+    private final String name;
+    private final String country;
+    private final String city;
+    private final String street;
+    private final String num;
+    private final String lat;
+    private final String lng;
 
     @Override
     public String toString() {

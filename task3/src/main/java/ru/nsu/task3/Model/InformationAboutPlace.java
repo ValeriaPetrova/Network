@@ -1,17 +1,13 @@
 package ru.nsu.task3.Model;
 
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
+@Getter
+@RequiredArgsConstructor
 public class InformationAboutPlace {
-    @Getter
-    public String name;
-    @Getter
-    public String xid;
-
-    public InformationAboutPlace(String name, String xid) {
-        this.name = name;
-        this.xid = xid;
-    }
+    private final String name;
+    private final String xid;
 
     @Override
     public String toString() {

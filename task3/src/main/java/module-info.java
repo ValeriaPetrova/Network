@@ -5,6 +5,7 @@ module ru.nsu.task {
     requires lombok;
     requires com.fasterxml.jackson.databind;
     requires java.desktop;
+    requires org.slf4j;
 
     opens ru.nsu.task3 to javafx.fxml;
     exports ru.nsu.task3;

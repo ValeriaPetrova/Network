@@ -1,9 +1,13 @@
 package ru.nsu.task3.Model;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
 import lombok.Setter;
 import ru.nsu.task3.Parser;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLEncoder;
@@ -14,90 +18,102 @@ import java.nio.charset.StandardCharsets;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutionException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import java.util.Properties;
 
+@Getter
 public class Model {
-    private final static String urlGraphHopper = "https://graphhopper.com/api/1/geocode";
-    private final static String keyApiGraphHopper = "7148ff36-3a88-42e0-9390-ffe9e256a037";
-    private final static String urlOpenTripMap = "https://api.opentripmap.com/0.1/ru/places/";
-    private final static String keyApiOpenTripMap = "5ae2e3f221c38a28845f05b6c50acd7ee481d2e30e1bd88d99e42a26";
-    private final static String urlOpenWeatherMap = "http://api.openweathermap.org/data/2.5/weather";
-    private final static String keyApiOpenWeatherMap = "143494f8d432d2a19f11ceec08b9c945";
+    private  static final Logger logger = LoggerFactory.getLogger("APPLICATION");
+    private HttpClient httpClient;
 
-    public boolean isError = false;
+    private final static String urlGraphHopper = "https://graphhopper.com/api/1/geocode";
+    private static String keyApiGraphHopper = "<INSERT_YOUR_KEY>";
+    private final static String urlOpenTripMap = "https://api.opentripmap.com/0.1/ru/places/";
+    private static String keyApiOpenTripMap = "<INSERT_YOUR_KEY>";
+    private final static String urlOpenWeatherMap = "http://api.openweathermap.org/data/2.5/weather";
+    private static String keyApiOpenWeatherMap = "<INSERT_YOUR_KEY>";
+
+    private boolean isError = false;
 
     @Setter
-    public String placeName;
-    @Getter
-    public CopyOnWriteArrayList<Place> places;
-    @Getter
-    public CompletableFuture<CopyOnWriteArrayList<InformationAboutPlace>> listOfNearbyPlaces;
-    @Getter
-    public Mode mode;
-    @Getter
-    public CompletableFuture<Description> description;
-    @Getter
+    private String placeName;
+    private CompletableFuture<CopyOnWriteArrayList<Place>> places;
+    private CompletableFuture<CopyOnWriteArrayList<InformationAboutPlace>> listOfNearbyPlaces;
+    private Mode mode;
+    private CompletableFuture<Description> description;
     private CompletableFuture<Weather> weather;
 
-    public String receivePlace() throws UnsupportedEncodingException, ExecutionException, InterruptedException {
-        HttpClient httpClient = HttpClient.newHttpClient();
+    public Model() throws FileNotFoundException {
+        FileInputStream fileInputStream;
+        Properties property = new Properties();
+        try{
+            fileInputStream = new FileInputStream("src/main/resources/ru/nsu/task3/keysApi.properties");
+            property.load(fileInputStream);
+            keyApiGraphHopper = property.getProperty("keyApiGraphHopper");
+            keyApiOpenTripMap = property.getProperty("keyApiOpenTripMap");
+            keyApiOpenWeatherMap = property.getProperty("keyApiOpenWeatherMap");
+            httpClient = HttpClient.newHttpClient();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private CompletableFuture<CopyOnWriteArrayList<Place>> receivePlaceAsync() throws UnsupportedEncodingException {
+        ObjectMapper objectMapper = new ObjectMapper();
         String placeNameUTF = URLEncoder.encode(placeName, StandardCharsets.UTF_8.toString());
         String request = String.format("%s?q=%s&key=%s", urlGraphHopper, placeNameUTF, keyApiGraphHopper);
         HttpRequest httpRequest = HttpRequest.newBuilder(URI.create(request)).header("accept", "application/json").build();
-        System.out.println(request);
-        return httpClient.sendAsync(httpRequest, HttpResponse.BodyHandlers.ofString()).thenApply(this::body).thenApply(HttpResponse::body).get();
+        logger.info(request);
+        return httpClient.sendAsync(httpRequest, HttpResponse.BodyHandlers.ofString()).thenApply(this::body).thenApply(HttpResponse::body).thenApply(Parser::parsePlace);
     }
 
-    public CompletableFuture<CopyOnWriteArrayList<InformationAboutPlace>> receiveListOfNearbyPlaces(Place place) {
-        HttpClient httpClient = HttpClient.newHttpClient();
+    private CompletableFuture<CopyOnWriteArrayList<InformationAboutPlace>> receiveListOfNearbyPlacesAsync(Place place) {
         String request = String.format("%sradius?radius=1000&lon=%s&lat=%s&units=metric&apikey=%s", urlOpenTripMap, place.getLng(), place.getLat(), keyApiOpenTripMap);
         HttpRequest httpRequest = HttpRequest.newBuilder(URI.create(request)).header("accept", "application/json").build();
-        System.out.println(request);
+        logger.info(request);
         return httpClient.sendAsync(httpRequest, HttpResponse.BodyHandlers.ofString()).thenApply(this::body).thenApply(HttpResponse::body).thenApply(Parser::parseNearbyPlace);
     }
 
-    public CompletableFuture<Description> receiveDescription(InformationAboutPlace informationAboutPlace) {
-        HttpClient httpClient = HttpClient.newHttpClient();
+    private CompletableFuture<Description> receiveDescriptionAsync(InformationAboutPlace informationAboutPlace) {
         String request = String.format("%sxid/%s?apikey=%s", urlOpenTripMap, informationAboutPlace.getXid(), keyApiOpenTripMap);
         HttpRequest httpRequest = HttpRequest.newBuilder(URI.create(request)).header("accept", "application/json").build();
-        System.out.println(request);
+        logger.info(request);
         return httpClient.sendAsync(httpRequest, HttpResponse.BodyHandlers.ofString()).thenApply(this::body).thenApply(HttpResponse::body).thenApply(Parser::parseDescription);
     }
 
-    public CompletableFuture<Weather> receiveWeather(Place place) {
-        HttpClient httpClient = HttpClient.newHttpClient();
+    private CompletableFuture<Weather> receiveWeatherAsync(Place place) {
         String request = String.format("%s?lat=%s&lon=%s&units=metric&appid=%s", urlOpenWeatherMap, place.getLat(), place.getLng(), keyApiOpenWeatherMap);
         HttpRequest httpRequest = HttpRequest.newBuilder(URI.create(request)).header("accept", "application/json").build();
-        System.out.println(request);
+        logger.info(request);
         return httpClient.sendAsync(httpRequest, HttpResponse.BodyHandlers.ofString()).thenApply(this::body).thenApply(HttpResponse::body).thenApply(Parser::parseWeather);
     }
 
-    public void searchPlaces() throws ModelException, UnsupportedEncodingException, ExecutionException, InterruptedException {
+    public void searchPlaces() throws ModelException, UnsupportedEncodingException {
         mode = Mode.SEARCH;
         isError = false;
-        places = new CopyOnWriteArrayList<>();
-        String request = receivePlace();
+        places = receivePlaceAsync();
         if (isError) {
             throw new ModelException("Error in request");
         }
-        this.places = Parser.parsePlace(request);
     }
 
-    public void choosePlace(int idx) throws ModelException {
+    public void choosePlace(int idx) throws ModelException, ExecutionException, InterruptedException {
         isError = false;
         mode = Mode.RECEIVE_INFORMATION;
-        Place place = places.get(idx);
-        listOfNearbyPlaces = receiveListOfNearbyPlaces(place);
-        weather = receiveWeather(place);
+        Place place = places.get().get(idx);
+        listOfNearbyPlaces = receiveListOfNearbyPlacesAsync(place);
+        weather = receiveWeatherAsync(place);
         if (isError) {
             throw new ModelException("Bad response");
         }
     }
 
     public void setDescriptionOfPlace(int idx) throws ExecutionException, InterruptedException {
-        description = receiveDescription(listOfNearbyPlaces.get().get(idx));
+        description = receiveDescriptionAsync(listOfNearbyPlaces.get().get(idx));
     }
 
-    public HttpResponse<String> body(HttpResponse<String> httpResponse) {
+    private HttpResponse<String> body(HttpResponse<String> httpResponse) {
         if (httpResponse.statusCode() != 200) {
             isError = true;
         }

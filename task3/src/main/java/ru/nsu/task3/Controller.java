@@ -8,13 +8,15 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import ru.nsu.task3.Model.*;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutionException;
 
 public class Controller {
-    public Model model = new Model();
+    private Model model = new Model();
 
     @FXML
     public TextField searchField;
@@ -26,6 +28,10 @@ public class Controller {
     public TextArea description;
     @FXML
     public TextArea weather;
+
+    public Controller() throws FileNotFoundException {
+    }
+
     @FXML
     protected void keyListener(KeyEvent event)  {
         if (event.getCode() == KeyCode.ENTER) {
@@ -47,18 +53,23 @@ public class Controller {
         }
     }
 
-    public void updateListOfPlaces() {
+    private void updateListOfPlaces() throws ExecutionException, InterruptedException {
         listOfPlaces.getItems().clear();
         listOfNearbyPlaces.getItems().clear();
         description.clear();
         weather.clear();
-        for (Place current : model.getPlaces()) {
-            listOfPlaces.getItems().add(current.toString());
+        CopyOnWriteArrayList<Place> place = model.getPlaces().get();
+        if (place.isEmpty()) {
+            listOfPlaces.getItems().add("Places not found");
+        } else {
+            for (Place current : place) {
+                listOfPlaces.getItems().add(current.toString());
+            }
         }
         listOfPlaces.refresh();
     }
 
-    public void updateListOfNearbyPlaces() throws ExecutionException, InterruptedException, IOException {
+    private void updateListOfNearbyPlaces() throws ExecutionException, InterruptedException, IOException {
         listOfNearbyPlaces.getItems().clear();
         description.clear();
         weather.clear();
@@ -76,7 +87,7 @@ public class Controller {
         listOfNearbyPlaces.refresh();
     }
 
-    public void updateDescriptionOfPlace() throws ExecutionException, InterruptedException {
+    private void updateDescriptionOfPlace() throws ExecutionException, InterruptedException {
         this.description.clear();
         Description description = model.getDescription().get();
         if (description.getTitle() == null && description.getText() == null) {
@@ -86,7 +97,7 @@ public class Controller {
         }
     }
 
-    private void search() throws UnsupportedEncodingException, ExecutionException, InterruptedException, ModelException {
+    private void search() throws UnsupportedEncodingException, ExecutionException, InterruptedException, ModelException, MalformedURLException {
         model.setPlaceName(searchField.getText());
         model.searchPlaces();
         updateListOfPlaces();
@@ -108,7 +119,7 @@ public class Controller {
         });
     }
 
-    public void error() {
+    private void error() {
         if (model.getMode() == Mode.SEARCH) {
             listOfPlaces.getItems().clear();
             listOfNearbyPlaces.getItems().clear();
