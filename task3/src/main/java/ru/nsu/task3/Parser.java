@@ -1,12 +1,15 @@
 package ru.nsu.task3;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
 import ru.nsu.task3.Model.*;
+import ru.nsu.task3.Model.Description.Description;
+import ru.nsu.task3.Model.NearbyPlaces.InformationAboutPlace;
+import ru.nsu.task3.Model.Weather.Weather;
 
 import java.util.Iterator;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 public class Parser {
@@ -25,7 +28,7 @@ public class Parser {
                     currentElement.get("city") == null ? null : currentElement.get("city").asText(),
                     currentElement.get("country") == null ? null : currentElement.get("country").asText(),
                     currentElement.get("street") == null ? null : currentElement.get("street").asText(),
-                    currentElement.get("num") == null ? null : currentElement.get("num").asText(),
+                    currentElement.get("housenumber") == null ? null : currentElement.get("housenumber").asText(),
                     currentElement.get("point").get("lat") == null ? null : currentElement.get("point").get("lat").asText(),
                     currentElement.get("point").get("lng") == null ? null : currentElement.get("point").get("lng").asText()
             );
@@ -50,21 +53,14 @@ public class Parser {
     }
 
     @SneakyThrows
-    public static Description parseDescription(String response) {
+    public static Description parseDescription(String request) {
         ObjectMapper objectMapper = new ObjectMapper();
-        JsonNode jsonNode = objectMapper.readTree(response);
-        String name = jsonNode.get("wikipedia_extracts") == null ? null : jsonNode.get("wikipedia_extracts").get("title").asText().split(":")[1];
-        String description = jsonNode.get("wikipedia_extracts") == null ? null : jsonNode.get("wikipedia_extracts").get("text").asText();
-        return new Description(name, description);
+        return objectMapper.readValue(request, Description.class);
     }
 
     @SneakyThrows
-    public static Weather parseWeather(String response) {
+    public static Weather parseWeather(String request) {
         ObjectMapper objectMapper = new ObjectMapper();
-        JsonNode jsonNode = objectMapper.readTree(response);
-        return new Weather(jsonNode.get("main").get("temp").asText(),
-                jsonNode.get("main").get("feels_like").asText(),
-                jsonNode.get("wind").get("speed").asText()
-        );
+        return objectMapper.readValue(request, Weather.class);
     }
 }

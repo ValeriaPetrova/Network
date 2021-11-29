@@ -7,6 +7,9 @@ import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import ru.nsu.task3.Model.*;
+import ru.nsu.task3.Model.Description.Description;
+import ru.nsu.task3.Model.NearbyPlaces.InformationAboutPlace;
+import ru.nsu.task3.Model.Weather.Weather;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -75,7 +78,6 @@ public class Controller {
         weather.clear();
         Weather weather = model.getWeather().get();
         this.weather.appendText(weather.toString());
-
         CopyOnWriteArrayList<InformationAboutPlace> nearbyPlaces = model.getListOfNearbyPlaces().get();
         if (nearbyPlaces.isEmpty()) {
             listOfNearbyPlaces.getItems().add("Places not found.");

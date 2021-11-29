@@ -10,7 +10,7 @@ public class Place {
     private final String country;
     private final String city;
     private final String street;
-    private final String num;
+    private final String housenumber;
     private final String lat;
     private final String lng;
 
@@ -32,10 +32,10 @@ public class Place {
                              Street: %s
                              """, street);
         }
-        if (num != null) {
+        if (housenumber != null) {
             output += String.format("""
                              House number: %s
-                             """, num);
+                             """, housenumber);
         }
         if (name != null) {
             output += String.format("""

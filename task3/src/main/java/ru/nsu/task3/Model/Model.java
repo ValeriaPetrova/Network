@@ -3,6 +3,9 @@ package ru.nsu.task3.Model;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
 import lombok.Setter;
+import ru.nsu.task3.Model.Description.Description;
+import ru.nsu.task3.Model.NearbyPlaces.InformationAboutPlace;
+import ru.nsu.task3.Model.Weather.Weather;
 import ru.nsu.task3.Parser;
 
 import java.io.FileInputStream;
