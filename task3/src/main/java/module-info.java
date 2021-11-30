@@ -17,4 +17,6 @@ module ru.nsu.task {
     opens ru.nsu.task3.Model.Description to javafx.fxml, com.fasterxml.jackson.databind;
     exports ru.nsu.task3.Model.NearbyPlaces;
     opens ru.nsu.task3.Model.NearbyPlaces to javafx.fxml, com.fasterxml.jackson.databind;
+    exports ru.nsu.task3.Model.Place;
+    opens ru.nsu.task3.Model.Place to javafx.fxml, com.fasterxml.jackson.databind;
 }

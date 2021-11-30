@@ -8,14 +8,15 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import ru.nsu.task3.Model.*;
 import ru.nsu.task3.Model.Description.Description;
-import ru.nsu.task3.Model.NearbyPlaces.InformationAboutPlace;
+import ru.nsu.task3.Model.NearbyPlaces.Features;
+import ru.nsu.task3.Model.NearbyPlaces.NearbyPlaces;
+import ru.nsu.task3.Model.Place.Hits;
+import ru.nsu.task3.Model.Place.Place;
 import ru.nsu.task3.Model.Weather.Weather;
 
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutionException;
 
 public class Controller {
@@ -61,28 +62,28 @@ public class Controller {
         listOfNearbyPlaces.getItems().clear();
         description.clear();
         weather.clear();
-        CopyOnWriteArrayList<Place> place = model.getPlaces().get();
-        if (place.isEmpty()) {
+        Place place = model.getPlaces().get();
+        if (place.getHits().isEmpty()) {
             listOfPlaces.getItems().add("Places not found");
         } else {
-            for (Place current : place) {
+            for (Hits current : place.getHits()) {
                 listOfPlaces.getItems().add(current.toString());
             }
         }
         listOfPlaces.refresh();
     }
 
-    private void updateListOfNearbyPlaces() throws ExecutionException, InterruptedException, IOException {
+    private void updateListOfNearbyPlaces() throws ExecutionException, InterruptedException {
         listOfNearbyPlaces.getItems().clear();
         description.clear();
         weather.clear();
         Weather weather = model.getWeather().get();
         this.weather.appendText(weather.toString());
-        CopyOnWriteArrayList<InformationAboutPlace> nearbyPlaces = model.getListOfNearbyPlaces().get();
-        if (nearbyPlaces.isEmpty()) {
+        NearbyPlaces nearbyPlaces = model.getListOfNearbyPlaces().get();
+        if (nearbyPlaces.getFeatures().isEmpty()) {
             listOfNearbyPlaces.getItems().add("Places not found.");
         } else {
-            for (InformationAboutPlace current : nearbyPlaces) {
+            for (Features current : nearbyPlaces.getFeatures()) {
                 listOfNearbyPlaces.getItems().add(current.toString());
             }
         }

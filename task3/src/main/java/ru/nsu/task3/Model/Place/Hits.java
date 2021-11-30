@@ -1,18 +1,17 @@
-package ru.nsu.task3.Model;
+package ru.nsu.task3.Model.Place;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 
 @Getter
-@RequiredArgsConstructor
-public class Place {
-    private final String name;
-    private final String country;
-    private final String city;
-    private final String street;
-    private final String housenumber;
-    private final String lat;
-    private final String lng;
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class Hits {
+    private Point point;
+    private String name;
+    private String country;
+    private String city;
+    private String street;
+    private String housenumber;
 
     @Override
     public String toString() {

@@ -1,10 +1,12 @@
 package ru.nsu.task3.Model;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
 import lombok.Setter;
 import ru.nsu.task3.Model.Description.Description;
-import ru.nsu.task3.Model.NearbyPlaces.InformationAboutPlace;
+import ru.nsu.task3.Model.NearbyPlaces.NearbyPlaces;
+import ru.nsu.task3.Model.NearbyPlaces.PlaceProperties;
+import ru.nsu.task3.Model.Place.Place;
+import ru.nsu.task3.Model.Place.Point;
 import ru.nsu.task3.Model.Weather.Weather;
 import ru.nsu.task3.Parser;
 
@@ -19,7 +21,6 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,8 +42,8 @@ public class Model {
 
     @Setter
     private String placeName;
-    private CompletableFuture<CopyOnWriteArrayList<Place>> places;
-    private CompletableFuture<CopyOnWriteArrayList<InformationAboutPlace>> listOfNearbyPlaces;
+    private CompletableFuture<Place> places;
+    private CompletableFuture<NearbyPlaces> listOfNearbyPlaces;
     private Mode mode;
     private CompletableFuture<Description> description;
     private CompletableFuture<Weather> weather;
@@ -62,8 +63,7 @@ public class Model {
         }
     }
 
-    private CompletableFuture<CopyOnWriteArrayList<Place>> receivePlaceAsync() throws UnsupportedEncodingException {
-        ObjectMapper objectMapper = new ObjectMapper();
+    private CompletableFuture<Place> receivePlaceAsync() throws UnsupportedEncodingException {
         String placeNameUTF = URLEncoder.encode(placeName, StandardCharsets.UTF_8.toString());
         String request = String.format("%s?q=%s&key=%s", urlGraphHopper, placeNameUTF, keyApiGraphHopper);
         HttpRequest httpRequest = HttpRequest.newBuilder(URI.create(request)).header("accept", "application/json").build();
@@ -71,22 +71,22 @@ public class Model {
         return httpClient.sendAsync(httpRequest, HttpResponse.BodyHandlers.ofString()).thenApply(this::body).thenApply(HttpResponse::body).thenApply(Parser::parsePlace);
     }
 
-    private CompletableFuture<CopyOnWriteArrayList<InformationAboutPlace>> receiveListOfNearbyPlacesAsync(Place place) {
-        String request = String.format("%sradius?radius=1000&lon=%s&lat=%s&units=metric&apikey=%s", urlOpenTripMap, place.getLng(), place.getLat(), keyApiOpenTripMap);
+    private CompletableFuture<NearbyPlaces> receiveListOfNearbyPlacesAsync(Point point) {
+        String request = String.format("%sradius?radius=1000&lon=%s&lat=%s&units=metric&apikey=%s", urlOpenTripMap, point.getLng(), point.getLat(), keyApiOpenTripMap);
         HttpRequest httpRequest = HttpRequest.newBuilder(URI.create(request)).header("accept", "application/json").build();
         logger.info(request);
         return httpClient.sendAsync(httpRequest, HttpResponse.BodyHandlers.ofString()).thenApply(this::body).thenApply(HttpResponse::body).thenApply(Parser::parseNearbyPlace);
     }
 
-    private CompletableFuture<Description> receiveDescriptionAsync(InformationAboutPlace informationAboutPlace) {
-        String request = String.format("%sxid/%s?apikey=%s", urlOpenTripMap, informationAboutPlace.getXid(), keyApiOpenTripMap);
+    private CompletableFuture<Description> receiveDescriptionAsync(PlaceProperties properties) {
+        String request = String.format("%sxid/%s?apikey=%s", urlOpenTripMap, properties.getXid(), keyApiOpenTripMap);
         HttpRequest httpRequest = HttpRequest.newBuilder(URI.create(request)).header("accept", "application/json").build();
         logger.info(request);
         return httpClient.sendAsync(httpRequest, HttpResponse.BodyHandlers.ofString()).thenApply(this::body).thenApply(HttpResponse::body).thenApply(Parser::parseDescription);
     }
 
-    private CompletableFuture<Weather> receiveWeatherAsync(Place place) {
-        String request = String.format("%s?lat=%s&lon=%s&units=metric&appid=%s", urlOpenWeatherMap, place.getLat(), place.getLng(), keyApiOpenWeatherMap);
+    private CompletableFuture<Weather> receiveWeatherAsync(Point point) {
+        String request = String.format("%s?lat=%s&lon=%s&units=metric&appid=%s", urlOpenWeatherMap, point.getLat(), point.getLng(), keyApiOpenWeatherMap);
         HttpRequest httpRequest = HttpRequest.newBuilder(URI.create(request)).header("accept", "application/json").build();
         logger.info(request);
         return httpClient.sendAsync(httpRequest, HttpResponse.BodyHandlers.ofString()).thenApply(this::body).thenApply(HttpResponse::body).thenApply(Parser::parseWeather);
@@ -104,16 +104,16 @@ public class Model {
     public void choosePlace(int idx) throws ModelException, ExecutionException, InterruptedException {
         isError = false;
         mode = Mode.RECEIVE_INFORMATION;
-        Place place = places.get().get(idx);
-        listOfNearbyPlaces = receiveListOfNearbyPlacesAsync(place);
-        weather = receiveWeatherAsync(place);
+        Point point = places.get().getHits().get(idx).getPoint();
+        listOfNearbyPlaces = receiveListOfNearbyPlacesAsync(point);
+        weather = receiveWeatherAsync(point);
         if (isError) {
             throw new ModelException("Bad response");
         }
     }
 
     public void setDescriptionOfPlace(int idx) throws ExecutionException, InterruptedException {
-        description = receiveDescriptionAsync(listOfNearbyPlaces.get().get(idx));
+        description = receiveDescriptionAsync(listOfNearbyPlaces.get().getFeatures().get(idx).getProperties());
     }
 
     private HttpResponse<String> body(HttpResponse<String> httpResponse) {
