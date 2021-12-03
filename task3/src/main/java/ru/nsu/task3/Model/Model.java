@@ -8,7 +8,6 @@ import ru.nsu.task3.Model.NearbyPlaces.PlaceProperties;
 import ru.nsu.task3.Model.Place.Place;
 import ru.nsu.task3.Model.Place.Point;
 import ru.nsu.task3.Model.Weather.Weather;
-import ru.nsu.task3.Parser;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -25,6 +24,8 @@ import java.util.concurrent.ExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.util.Properties;
+
+import static ru.nsu.task3.Parser.parse;
 
 @Getter
 public class Model {
@@ -68,33 +69,36 @@ public class Model {
         String request = String.format("%s?q=%s&key=%s", urlGraphHopper, placeNameUTF, keyApiGraphHopper);
         HttpRequest httpRequest = HttpRequest.newBuilder(URI.create(request)).header("accept", "application/json").build();
         logger.info(request);
-        return httpClient.sendAsync(httpRequest, HttpResponse.BodyHandlers.ofString()).thenApply(this::body).thenApply(HttpResponse::body).thenApply(Parser::parsePlace);
+        return httpClient.sendAsync(httpRequest, HttpResponse.BodyHandlers.ofString()).thenApply(this::body).thenApply(HttpResponse::body)
+                .thenApply(req -> parse(req, Place.class));
     }
 
     private CompletableFuture<NearbyPlaces> receiveListOfNearbyPlacesAsync(Point point) {
         String request = String.format("%sradius?radius=1000&lon=%s&lat=%s&units=metric&apikey=%s", urlOpenTripMap, point.getLng(), point.getLat(), keyApiOpenTripMap);
         HttpRequest httpRequest = HttpRequest.newBuilder(URI.create(request)).header("accept", "application/json").build();
         logger.info(request);
-        return httpClient.sendAsync(httpRequest, HttpResponse.BodyHandlers.ofString()).thenApply(this::body).thenApply(HttpResponse::body).thenApply(Parser::parseNearbyPlace);
+        return httpClient.sendAsync(httpRequest, HttpResponse.BodyHandlers.ofString()).thenApply(this::body).thenApply(HttpResponse::body)
+                .thenApply(req -> parse(req, NearbyPlaces.class));
     }
 
     private CompletableFuture<Description> receiveDescriptionAsync(PlaceProperties properties) {
         String request = String.format("%sxid/%s?apikey=%s", urlOpenTripMap, properties.getXid(), keyApiOpenTripMap);
         HttpRequest httpRequest = HttpRequest.newBuilder(URI.create(request)).header("accept", "application/json").build();
         logger.info(request);
-        return httpClient.sendAsync(httpRequest, HttpResponse.BodyHandlers.ofString()).thenApply(this::body).thenApply(HttpResponse::body).thenApply(Parser::parseDescription);
+        return httpClient.sendAsync(httpRequest, HttpResponse.BodyHandlers.ofString()).thenApply(this::body).thenApply(HttpResponse::body)
+                .thenApply(req -> parse(req, Description.class));
     }
 
     private CompletableFuture<Weather> receiveWeatherAsync(Point point) {
         String request = String.format("%s?lat=%s&lon=%s&units=metric&appid=%s", urlOpenWeatherMap, point.getLat(), point.getLng(), keyApiOpenWeatherMap);
         HttpRequest httpRequest = HttpRequest.newBuilder(URI.create(request)).header("accept", "application/json").build();
         logger.info(request);
-        return httpClient.sendAsync(httpRequest, HttpResponse.BodyHandlers.ofString()).thenApply(this::body).thenApply(HttpResponse::body).thenApply(Parser::parseWeather);
+        return httpClient.sendAsync(httpRequest, HttpResponse.BodyHandlers.ofString()).thenApply(this::body).thenApply(HttpResponse::body)
+                .thenApply(req -> parse(req, Weather.class));
     }
 
     public void searchPlaces() throws ModelException, UnsupportedEncodingException {
         mode = Mode.SEARCH;
-        isError = false;
         places = receivePlaceAsync();
         if (isError) {
             throw new ModelException("Error in request");
@@ -102,7 +106,6 @@ public class Model {
     }
 
     public void choosePlace(int idx) throws ModelException, ExecutionException, InterruptedException {
-        isError = false;
         mode = Mode.RECEIVE_INFORMATION;
         Point point = places.get().getHits().get(idx).getPoint();
         listOfNearbyPlaces = receiveListOfNearbyPlacesAsync(point);
@@ -122,4 +125,5 @@ public class Model {
         }
         return httpResponse;
     }
+
 }
