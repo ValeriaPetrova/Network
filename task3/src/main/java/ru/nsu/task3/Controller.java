@@ -1,5 +1,6 @@
 package ru.nsu.task3;
 
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextArea;
@@ -7,16 +8,12 @@ import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import ru.nsu.task3.Model.*;
-import ru.nsu.task3.Model.Description.Description;
 import ru.nsu.task3.Model.NearbyPlaces.Features;
-import ru.nsu.task3.Model.NearbyPlaces.NearbyPlaces;
 import ru.nsu.task3.Model.Place.Hits;
-import ru.nsu.task3.Model.Place.Place;
-import ru.nsu.task3.Model.Weather.Weather;
 
 import java.io.FileNotFoundException;
 import java.io.UnsupportedEncodingException;
-import java.net.MalformedURLException;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
 public class Controller {
@@ -57,50 +54,60 @@ public class Controller {
         }
     }
 
-    private void updateListOfPlaces() throws ExecutionException, InterruptedException {
+    private void updateListOfPlaces() {
         listOfPlaces.getItems().clear();
         listOfNearbyPlaces.getItems().clear();
         description.clear();
         weather.clear();
-        Place place = model.getPlaces().get();
-        if (place.getHits().isEmpty()) {
-            listOfPlaces.getItems().add("Places not found");
-        } else {
-            for (Hits current : place.getHits()) {
-                listOfPlaces.getItems().add(current.toString());
-            }
-        }
-        listOfPlaces.refresh();
+        CompletableFuture.supplyAsync(() -> model.getPlaces()
+                .thenAcceptAsync(place -> {
+                    if (place.getHits().isEmpty()) {
+                        Platform.runLater(()->listOfPlaces.getItems().add("Places not found"));
+                    } else {
+                        for (Hits current: place.getHits()) {
+                            Platform.runLater(()->listOfPlaces.getItems().add(current.toString()));
+                        }
+                    }
+                    listOfPlaces.refresh();
+                })
+        );
     }
 
-    private void updateListOfNearbyPlaces() throws ExecutionException, InterruptedException {
+    private void updateListOfNearbyPlaces() {
         listOfNearbyPlaces.getItems().clear();
         description.clear();
         weather.clear();
-        Weather weather = model.getWeather().get();
-        this.weather.appendText(weather.toString());
-        NearbyPlaces nearbyPlaces = model.getListOfNearbyPlaces().get();
-        if (nearbyPlaces.getFeatures().isEmpty()) {
-            listOfNearbyPlaces.getItems().add("Places not found.");
-        } else {
-            for (Features current : nearbyPlaces.getFeatures()) {
-                listOfNearbyPlaces.getItems().add(current.toString());
-            }
-        }
-        listOfNearbyPlaces.refresh();
+        CompletableFuture.supplyAsync(() -> model.getWeather()
+                .thenAcceptAsync(weather -> Platform.runLater(() -> this.weather.appendText(weather.toString())))
+        );
+        CompletableFuture.supplyAsync(() -> model.getListOfNearbyPlaces()
+                .thenAcceptAsync((nearbyPlaces -> {
+                    if (nearbyPlaces.getFeatures().isEmpty()) {
+                        Platform.runLater(() -> listOfNearbyPlaces.getItems().add("Places not found."));
+                    } else {
+                        for (Features current : nearbyPlaces.getFeatures()) {
+                            Platform.runLater(() -> listOfNearbyPlaces.getItems().add(current.toString()));
+                        }
+                    }
+                    listOfNearbyPlaces.refresh();
+                }))
+        );
     }
 
-    private void updateDescriptionOfPlace() throws ExecutionException, InterruptedException {
+    private void updateDescriptionOfPlace() {
         this.description.clear();
-        Description description = model.getDescription().get();
-        if (description.getTitle() == null && description.getText() == null) {
-            this.description.appendText("No description for the selected place.");
-        } else {
-            this.description.appendText(description.toString());
-        }
+        CompletableFuture.supplyAsync(() -> model.getDescription()
+                .thenAcceptAsync(description -> {
+                    if (description.getTitle() == null && description.getText() == null) {
+                        this.description.appendText("No description for the selected place.");
+                    } else {
+                        this.description.appendText(description.toString());
+                    }
+                })
+        );
     }
 
-    private void search() throws UnsupportedEncodingException, ExecutionException, InterruptedException, ModelException, MalformedURLException {
+    private void search() throws UnsupportedEncodingException, ModelException, ExecutionException, InterruptedException {
         model.setPlaceName(searchField.getText());
         model.searchPlaces();
         updateListOfPlaces();
