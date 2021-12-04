@@ -61,13 +61,15 @@ public class Controller {
         weather.clear();
         CompletableFuture.supplyAsync(() -> model.getPlaces()
                 .thenAcceptAsync(place -> {
-                    if (place.getHits().isEmpty()) {
-                        Platform.runLater(()->listOfPlaces.getItems().add("Places not found"));
-                    } else {
-                        for (Hits current: place.getHits()) {
-                            Platform.runLater(()->listOfPlaces.getItems().add(current.toString()));
-                        }
-                    }
+                    Platform.runLater(() -> {
+                                if (place.getHits().isEmpty()) {
+                                    listOfPlaces.getItems().add("Places not found");
+                                } else {
+                                    for (Hits current : place.getHits()) {
+                                        listOfPlaces.getItems().add(current.toString());
+                                    }
+                                }
+                    });
                     listOfPlaces.refresh();
                 })
         );
@@ -82,13 +84,15 @@ public class Controller {
         );
         CompletableFuture.supplyAsync(() -> model.getListOfNearbyPlaces()
                 .thenAcceptAsync((nearbyPlaces -> {
-                    if (nearbyPlaces.getFeatures().isEmpty()) {
-                        Platform.runLater(() -> listOfNearbyPlaces.getItems().add("Places not found."));
-                    } else {
-                        for (Features current : nearbyPlaces.getFeatures()) {
-                            Platform.runLater(() -> listOfNearbyPlaces.getItems().add(current.toString()));
-                        }
-                    }
+                    Platform.runLater(() -> {
+                                if (nearbyPlaces.getFeatures().isEmpty()) {
+                                    listOfNearbyPlaces.getItems().add("Places not found.");
+                                } else {
+                                    for (Features current : nearbyPlaces.getFeatures()) {
+                                        listOfNearbyPlaces.getItems().add(current.toString());
+                                    }
+                                }
+                    });
                     listOfNearbyPlaces.refresh();
                 }))
         );
@@ -97,17 +101,17 @@ public class Controller {
     private void updateDescriptionOfPlace() {
         this.description.clear();
         CompletableFuture.supplyAsync(() -> model.getDescription()
-                .thenAcceptAsync(description -> {
+                .thenAcceptAsync(description -> Platform.runLater(() -> {
                     if (description.getTitle() == null && description.getText() == null) {
                         this.description.appendText("No description for the selected place.");
                     } else {
                         this.description.appendText(description.toString());
                     }
-                })
+                }))
         );
     }
 
-    private void search() throws UnsupportedEncodingException, ModelException, ExecutionException, InterruptedException {
+    private void search() throws UnsupportedEncodingException, ModelException {
         model.setPlaceName(searchField.getText());
         model.searchPlaces();
         updateListOfPlaces();
