@@ -1,24 +1,25 @@
 package ru.nsu.task3.Model.Description;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 
 @Getter
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Description {
-    private Info wikipedia_extracts;
+    private @JsonProperty("wikipedia_extracts") Info wikipediaExtracts;
 
     public String getTitle() {
-        if (wikipedia_extracts != null) {
-            return wikipedia_extracts.getTitle();
+        if (wikipediaExtracts != null) {
+            return wikipediaExtracts.getTitle();
         } else {
             return null;
         }
     }
 
     public String getText() {
-        if (wikipedia_extracts != null) {
-            return wikipedia_extracts.getText();
+        if (wikipediaExtracts != null) {
+            return wikipediaExtracts.getText();
         } else {
             return null;
         }

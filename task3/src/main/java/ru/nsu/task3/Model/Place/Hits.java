@@ -1,6 +1,7 @@
 package ru.nsu.task3.Model.Place;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 
 @Getter
@@ -11,7 +12,7 @@ public class Hits {
     private String country;
     private String city;
     private String street;
-    private String housenumber;
+    private @JsonProperty("housenumber") String houseNumber;
 
     @Override
     public String toString() {
@@ -31,10 +32,10 @@ public class Hits {
                              Street: %s
                              """, street);
         }
-        if (housenumber != null) {
+        if (houseNumber != null) {
             output += String.format("""
                              House number: %s
-                             """, housenumber);
+                             """, houseNumber);
         }
         if (name != null) {
             output += String.format("""

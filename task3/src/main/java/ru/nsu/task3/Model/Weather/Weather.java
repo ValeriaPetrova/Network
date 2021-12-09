@@ -19,7 +19,7 @@ public class Weather {
 
     public String getFeelsLike() {
         if (main != null) {
-            return main.getFeels_like();
+            return main.getFeelsLike();
         } else {
             return null;
         }
