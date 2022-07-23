@@ -19,6 +19,9 @@ gradle run
 
 #### Методы API:
 [1] получение локаций с координатами и названиями: https://docs.graphhopper.com/#operation/getGeocode
+
 [2] получение погоды по координатам https://openweathermap.org/current
+
 [3] получение списка интересных мест по координатам: https://opentripmap.io/docs#/Objects%20list/getListOfPlacesByRadius
+
 [4] получение описания места по его id: https://opentripmap.io/docs#/Object%20properties/getPlaceByXid
